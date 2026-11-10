@@ -1,113 +1,194 @@
-# Workshops de GitHub Copilot CLI con Node.js
+# 🧑‍💻 Workshops: GitHub Copilot CLI con Node.js
 
-Dos laboratorios prácticos de 3 horas para desarrolladores JavaScript que ya tienen licencia de GitHub Copilot. Se trabaja en la terminal con Copilot CLI, GitHub CLI (`gh`) y una API de tareas escrita en Node.js.
+## Agentes en la terminal para el equipo de Contoso Servicios
 
-Los temas son los lanzamientos de Copilot de agosto a noviembre de 2026 (entre ellos Copilot Fusion) más rubber duck, que es anterior pero forma parte del flujo de revisión. Estos workshops no son una introducción a Copilot: asumen que ya lo usas en el editor.
+**Duración:** 2 laboratorios de 3 horas · **Nivel:** intermedio · **Idioma:** español
 
-> **Sobre los temas nuevos.** Copilot CLI publica versiones cada pocos días y varias funciones de estos laboratorios están en preview. Los comandos salen de la documentación y el changelog oficiales. Si algo no coincide con tu versión, consulta la documentación, anótalo y sigue. Esta guía dice cuándo algo no está confirmado.
+---
 
-## Escenario
+## 📋 Tabla de contenidos
 
-Eres parte del equipo de soporte de **Contoso Servicios**. Heredaste una API interna de tareas que funciona, pero tiene defectos. A lo largo de los dos workshops la corriges, la extiendes y construyes automatizaciones alrededor de ella, usando agentes con revisión humana en cada paso. Contoso es una empresa ficticia.
+- [Introducción](#-introducción)
+- [Escenario: Contoso Servicios](#-escenario-contoso-servicios)
+- [Los dos workshops](#-los-dos-workshops)
+- [Pre-requisitos](#-pre-requisitos)
+- [Cómo empezar](#-cómo-empezar)
+- [Estructura del repositorio](#-estructura-del-repositorio)
+- [Buenas prácticas durante los laboratorios](#-buenas-prácticas-durante-los-laboratorios)
+- [Preguntas frecuentes](#-preguntas-frecuentes)
+- [Referencias oficiales](#-referencias-oficiales)
 
-## Qué aprenderás
+---
 
-**Workshop 1: del issue al merge con agentes en el terminal**
+## 🎯 Introducción
 
-- Elegir entre Fusion Standard, High, Auto y un modelo fijo, y medir la diferencia.
-- Planear con Copilot y criticar el plan con rubber duck.
-- Trabajar en paralelo con worktrees y delegar a la nube con `/delegate`.
-- Dividir un cambio en PRs apilados con `gh stack`.
-- Revisar código generado por agentes con una checklist humana.
+Estos laboratorios son para desarrolladores JavaScript que **ya usan GitHub Copilot en el editor** y quieren llevarlo a la terminal. No son una introducción a Copilot: aquí trabajas con agentes que leen el repositorio, proponen cambios, ejecutan comandos y abren pull requests, siempre con tu revisión.
 
-**Workshop 2: automatización agéntica con gobierno**
+Al terminar los dos workshops sabrás:
 
-- Escribir Agentic Workflows en Markdown y probarlos con `gh aw trial`.
-- Instalar skills con `gh skill`, fijando versión, y crear las tuyas.
-- Crear agentes propios y hooks que bloquean comandos peligrosos.
-- Usar el Copilot SDK desde Node.js con una herramienta propia.
-- Redactar una política de una página sobre qué pueden hacer los agentes sin aprobación.
+- ✅ Elegir el modelo adecuado (Fusion, Auto o un modelo fijo) y medir lo que cuesta
+- ✅ Planear con Copilot y pedir una segunda opinión con rubber duck
+- ✅ Trabajar con varios agentes en paralelo sin que se pisen
+- ✅ Dividir un cambio grande en PRs apilados
+- ✅ Automatizar tareas con Agentic Workflows, skills, agentes propios y hooks
+- ✅ Usar el SDK de Copilot desde Node.js
+- ✅ Definir qué puede hacer un agente sin pedir permiso y qué no
 
-## Requisitos
+> 💡 **Sobre los temas nuevos.** Copilot CLI publica versiones cada pocos días y varias funciones de estos laboratorios están en preview. Los comandos salen de la documentación y el changelog oficiales. Cuando algo no coincida con tu versión, revisa la documentación, anótalo y sigue. Las guías indican qué no está confirmado.
 
-| Herramienta | Versión | Comprobación |
+---
+
+## 🏢 Escenario: Contoso Servicios
+
+Eres parte del equipo de soporte de **Contoso Servicios**, una empresa ficticia. Heredaste una pequeña API de tareas escrita en Node.js que funciona, pero tiene defectos. A lo largo de los dos workshops la corriges, la extiendes y construyes automatizaciones a su alrededor.
+
+| Método | Ruta | Qué hace |
 | --- | --- | --- |
-| Licencia de Copilot | Activa. Si viene de una organización, la política de Copilot CLI debe estar habilitada | `copilot` abre sesión |
+| `GET` | `/tasks` | Lista las tareas. Acepta los filtros `?due=` y `?status=` |
+| `POST` | `/tasks` | Crea una tarea con `title` y `due` |
+| `GET` | `/tasks/:id` | Consulta una tarea |
+| `PATCH` | `/tasks/:id` | Cambia el estado (`open` o `done`) |
+| `DELETE` | `/tasks/:id` | Elimina una tarea |
+
+La API usa `node:http` sin frameworks, guarda los datos en memoria ([src/store.js](src/store.js)) y se prueba con `node:test`. Arranca con `npm start` en `http://localhost:3000`.
+
+> 📝 El repositorio tiene **defectos intencionales** que los ejercicios usan. No están listados aquí para que los descubras con los agentes.
+
+---
+
+## 📚 Los dos workshops
+
+| Workshop | Tema | Qué construyes |
+| --- | --- | --- |
+| [Workshop 1](docs/workshop-1.md) | Del issue al merge con agentes en la terminal | Corriges un bug, agregas paginación y validaciones, trabajas en paralelo y llevas el cambio hasta el merge |
+| [Workshop 2](docs/workshop-2.md) | Automatización agéntica con gobierno | Un workflow agéntico, una skill, un agente con hooks, un script con el SDK y una política para tu equipo |
+
+Haz el Workshop 1 primero. El Workshop 2 parte del código que dejaste en `main`.
+
+---
+
+## 🧰 Pre-requisitos
+
+### Software
+
+| Herramienta | Versión | Cómo comprobarla |
+| --- | --- | --- |
 | Node.js | 22 o superior | `node -v` |
 | Git | 2.20 o superior | `git --version` |
 | GitHub CLI | 2.90 o superior | `gh --version` |
-| Copilot CLI | Última | `npm install -g @github/copilot`, luego `copilot --version` |
-| Extensiones de `gh` | `gh-stack` y `gh-aw` | `gh extension install github/gh-stack` y `gh extension install github/gh-aw` |
+| Copilot CLI | La más reciente | `copilot --version` |
+| Extensiones de `gh` | `gh-stack` y `gh-aw` | `gh extension list` |
 
-Prueba todo de una vez con:
+### Cuenta de GitHub
+
+- Licencia de GitHub Copilot activa.
+- Si la licencia viene de una organización, la política de **Copilot CLI** debe estar habilitada.
+- Sesión iniciada en `gh` con permisos `repo` y `workflow`.
+
+### Instalar lo que falta
 
 ```bash
-npm run check:setup
+npm install -g @github/copilot
+gh auth login --scopes repo,workflow
+gh extension install github/gh-stack
+gh extension install github/gh-aw
 ```
 
-El script solo lee versiones, no instala nada. Te dice qué falta y cómo resolverlo.
+---
 
-## Cómo empezar
+## 🚀 Cómo empezar
 
-1. Haz un **fork** de [armandoblanco/workshop-copilot-cli-nodejs](https://github.com/armandoblanco/workshop-copilot-cli-nodejs) y clónalo. Trabaja siempre en tu fork.
+### Paso 1: Haz un fork y clónalo
 
 ```bash
 gh repo fork armandoblanco/workshop-copilot-cli-nodejs --clone
 cd workshop-copilot-cli-nodejs
 ```
 
-2. Habilita GitHub Actions en el fork (Settings, Actions).
-3. Instala y prueba:
+> 💡 Trabaja siempre en **tu fork**. Varios ejercicios abren PRs, crean issues o ejecutan Actions, y no quieres hacer eso en un repositorio compartido.
+
+### Paso 2: Habilita GitHub Actions en tu fork
+
+1. Abre tu fork en GitHub.
+2. Ve a **Settings → Actions → General**.
+3. Selecciona **Allow all actions and reusable workflows** y guarda.
+
+### Paso 3: Verifica tu entorno
+
+```bash
+npm run check:setup
+```
+
+El script solo lee versiones, no instala nada. Marca con `FALTA` lo que necesitas resolver y te dice cómo.
+
+### Paso 4: Instala dependencias y corre los tests
 
 ```bash
 npm ci
 npm test
 ```
 
-**Deben fallar exactamente 2 tests.** Son del filtro `?due=` y es lo esperado: los corregirás en el Workshop 1. Si fallan más o menos, algo está distinto en tu entorno.
+✅ **Verificar:**
 
-4. Sigue la guía de cada workshop:
-   - [Workshop 1](docs/workshop-1.md)
-   - [Workshop 2](docs/workshop-2.md)
+- 8 tests pasan.
+- **Exactamente 2 tests fallan**, ambos del filtro `?due=`. Es lo esperado: los corregirás en el Workshop 1.
 
-## Estructura del repositorio
+> ⚠ Si fallan más o menos de 2, algo está distinto en tu entorno. Revisa tu versión de Node.js antes de seguir.
+
+### Paso 5: Abre la guía
+
+Continúa con el [Workshop 1](docs/workshop-1.md).
+
+---
+
+## 🗂 Estructura del repositorio
 
 ```text
-src/                 API en Node.js (node:http, sin frameworks)
-test/                Pruebas con node:test
-scripts/             check-setup, seed-issues y export-participant
-docs/                Guías de laboratorio de cada workshop
-.github/             CI, plantillas de issues y PR, Dependabot
+src/          API en Node.js (node:http, sin frameworks)
+test/         Pruebas con node:test
+scripts/      check-setup, seed-issues y export-participant
+docs/         Guías paso a paso de cada workshop
+.github/      CI, plantillas de issues y PR, Dependabot
 ```
 
-## Cómo está diseñado
+---
 
-- **Práctico primero.** Cada módulo termina en algo que ejecutas y verificas, con un checkpoint.
-- **Sin dependencias que no hagan falta.** La API usa solo módulos de Node.js, salvo una dependencia sembrada a propósito para el módulo de gobierno del Workshop 2.
-- **Defectos intencionales.** El repo tiene fallas reales que los laboratorios usan. No están listadas aquí para que las descubras con los agentes. El instructor tiene la lista.
-- **Revisión humana siempre.** Cada módulo con agentes termina con una pregunta sobre qué revisaste, no solo sobre qué generó el agente.
-- **Costos visibles.** Anotas los créditos de IA que consumes en cada enfoque.
-- **Honestidad sobre los límites.** Las funciones en preview están marcadas y los comandos sin confirmar también.
+## 👍 Buenas prácticas durante los laboratorios
 
-## Buenas prácticas durante los laboratorios
+| Práctica | Por qué |
+| --- | --- |
+| Trabaja en tu fork y en ramas | Un error de un agente no afecta a nadie más |
+| Lee cada cambio antes de aprobarlo | Aprobar sin leer es la forma más rápida de aprender mal |
+| No des permisos amplios por comodidad | Un agente con todos los permisos puede borrar o publicar |
+| No pongas secretos en prompts, archivos ni logs | Todo lo que escribes puede terminar en un commit |
+| No modifiques los tests para que pasen | Corrige el código, no la prueba |
+| Pregunta por qué hace falta cada dependencia nueva | Cada paquete es código ajeno que ejecutas |
+| Anota los créditos de IA que consumes | Los agentes en paralelo multiplican el costo |
+| Si te pierdes, `git status` y vuelve a un commit conocido | Es más rápido que arreglar un estado confuso |
 
-- Trabaja en tu fork y en ramas. No uses repositorios de tu organización.
-- Lee cada cambio antes de aprobarlo. No des permisos amplios a un agente por comodidad.
-- No pongas secretos en prompts, archivos ni logs.
-- No modifiques los tests para que pasen. Corrige el código.
-- Antes de aceptar una dependencia nueva, pregunta por qué hace falta.
-- Anota los créditos de IA que consumes: los agentes en paralelo multiplican el costo.
-- Si algo queda en un estado confuso, usa `git status` y vuelve a un commit conocido antes de seguir.
+---
 
-## Para instructores
+## 🙋 Preguntas frecuentes
 
-La guía del instructor, la lista de fallas sembradas y las soluciones de referencia no se publican en este repositorio. Pídelas al autor.
+### ¿Necesito saber usar Copilot antes?
 
-Antes de impartirlo, haz un ensayo completo en una cuenta limpia. Ningún comando de Copilot CLI, `gh stack`, `gh skill` o `gh aw` fue ejecutado al preparar este material.
+Sí. Los workshops asumen que ya usas Copilot en el editor. Aquí no se explica qué es una sugerencia o cómo funciona el chat.
 
-## Contenido sujeto a cambios
+### ¿Por qué la API no usa Express?
 
-Referencias oficiales:
+Para que no haya dependencias innecesarias. La API usa solo módulos de Node.js, salvo una dependencia antigua que se sembró a propósito para el módulo de gobierno del Workshop 2.
+
+### Un comando de la guía no existe en mi versión. ¿Qué hago?
+
+Anótalo y sigue con el siguiente paso. Saber detectar que una función cambió es parte del aprendizaje. Consulta `copilot --help` o la documentación oficial.
+
+### ¿Cuánto cuesta en créditos de IA?
+
+Depende del modelo y de cuántos agentes uses. Cada ejercicio te pide anotarlo y el último módulo del Workshop 1 compara los resultados.
+
+---
+
+## 🔗 Referencias oficiales
 
 - [Documentación de GitHub Copilot](https://docs.github.com/en/copilot)
 - [Copilot Fusion](https://docs.github.com/en/copilot/concepts/models/copilot-fusion)
@@ -115,6 +196,10 @@ Referencias oficiales:
 - [GitHub Agentic Workflows](https://github.github.com/gh-aw/)
 - [Changelog de GitHub](https://github.blog/changelog/)
 
-## Licencia
+> 🎓 **Para instructores:** la guía del instructor, la lista de defectos sembrados y las soluciones de referencia no se publican en este repositorio. Pídelas al autor. Antes de impartir el taller, haz un ensayo completo en una cuenta limpia.
+
+---
+
+## 📄 Licencia
 
 MIT. Consulta [LICENSE](LICENSE).

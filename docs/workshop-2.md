@@ -1,109 +1,672 @@
-# Workshop 2: automatización agéntica con gobierno
+# ⚙ Workshop 2: Automatización agéntica con gobierno
 
-**Duración:** 180 minutos. **Formato:** laboratorio individual, siguiendo esta guía.
-**Prerrequisito:** Workshop 1 terminado, o tu fork de `main` con `npm test` en verde.
+## GitHub Copilot CLI con Node.js · Contoso Servicios
 
-## Qué vas a lograr
+**Duración:** 3 horas · **Nivel:** intermedio · **Formato:** laboratorio individual guiado
 
-Al terminar tendrás un workflow agéntico en Actions, una skill y un plugin propios, un agente con hooks y un script en Node.js que usa el SDK de Copilot, y una política de una página para agentes de tu equipo.
+---
 
-Varias piezas de este workshop son preview o cambian rápido. Cuando un comando no coincida con tu versión, consulta la documentación oficial y anota la diferencia.
+## 📋 Tabla de contenidos
 
-## Agenda
+- [Introducción](#-introducción)
+- [Conceptos clave](#-conceptos-clave)
+- [Pre-requisitos](#-pre-requisitos)
+- [Agenda](#-agenda)
+- [Ejercicio 0: Arranque](#-ejercicio-0-arranque-10-min)
+- [Ejercicio 1: Agentic Workflows](#-ejercicio-1-agentic-workflows-45-min)
+- [Ejercicio 2: Skills y plugins](#-ejercicio-2-skills-y-plugins-35-min)
+- [Ejercicio 3: Agentes propios y hooks](#-ejercicio-3-agentes-propios-y-hooks-35-min)
+- [Ejercicio 4: El SDK de Copilot en Node.js](#-ejercicio-4-el-sdk-de-copilot-en-nodejs-30-min)
+- [Ejercicio 5: Gobierno y costos](#-ejercicio-5-gobierno-y-costos-25-min)
+- [¿Te quedaste atrás?](#-te-quedaste-atrás)
+- [Checklist final](#-checklist-final)
+- [Referencia rápida](#-referencia-rápida)
 
-| Min | Módulo | Resultado |
+---
+
+## 🎯 Introducción
+
+En el Workshop 1 usaste agentes de forma interactiva. Aquí los conviertes en **automatizaciones**: agentes que se disparan solos, que siguen reglas del equipo y que tienen límites claros.
+
+Al terminar habrás:
+
+- ✅ Escrito un workflow agéntico en Markdown que hace triage de issues
+- ✅ Instalado una skill de terceros fijando su versión, y creado una propia
+- ✅ Creado un agente revisor y hooks que corren tests y bloquean comandos peligrosos
+- ✅ Escrito un script en Node.js que usa Copilot con una herramienta propia
+- ✅ Redactado una política de una página sobre qué pueden hacer los agentes de tu equipo
+
+> ⚠ **Nota importante:** varias piezas de este workshop están en preview o cambian rápido. Cuando un comando no coincida con tu versión, consulta la documentación oficial, anota la diferencia y sigue.
+
+---
+
+## 🧠 Conceptos clave
+
+### Las piezas de este workshop
+
+| Pieza | Dónde vive | Qué es | Cuándo usarla |
+| --- | --- | --- | --- |
+| Agentic Workflow | `.github/workflows/*.md` | Un workflow de Actions escrito en Markdown que ejecuta un agente | Tareas que se disparan solas: triage, análisis de fallas |
+| Skill | `.github/skills/*/SKILL.md` | Instrucciones empaquetadas que Copilot carga cuando son relevantes | Conocimiento del equipo que se repite |
+| Plugin | Un repositorio | Un paquete que agrupa skills, hooks y agentes para instalarlos juntos | Compartir varias piezas entre repos |
+| Agente propio | `.github/agents/*.agent.md` | Copilot con un rol, herramientas y reglas fijas | Necesitas un especialista, por ejemplo un revisor |
+| Hook | `.github/hooks/*.json` | Un comando que se ejecuta siempre en un punto del flujo del agente | Reglas que no deben depender del modelo |
+| SDK | Tu código Node.js | Una librería para controlar Copilot desde un programa | Integrar Copilot en tus propias herramientas |
+
+### Determinista frente a agéntico
+
+| | Workflow determinista (`.yml`) | Agentic Workflow (`.md`) |
 | --- | --- | --- |
-| 10 | M0 Arranque | Extensiones instaladas y fork con Actions activo |
-| 45 | M1 Agentic Workflows | Triage de issues y análisis de fallas de CI en Markdown |
-| 35 | M2 Skills y plugins | Una skill fijada por versión y un plugin propio |
-| 35 | M3 Agentes y hooks | Un agente revisor y un hook que corre tests y bloquea comandos |
-| 30 | M4 SDK en Node.js | Un script que usa Copilot con una herramienta propia |
-| 25 | M5 Gobierno y costos | Política de una página para agentes del equipo |
+| Quién decide los pasos | Tú, paso por paso | El agente, a partir de tus instrucciones |
+| Mismo resultado cada vez | Sí | No necesariamente |
+| Ideal para | Compilar, probar, publicar | Clasificar, resumir, analizar |
 
-## M0: arranque (10 min)
+> 💡 Los workflows agénticos **complementan** a los deterministas, no los reemplazan.
 
-1. `npm run check:setup` debe mostrar `gh-aw` instalada. Si falta: `gh extension install github/gh-aw`.
-2. En tu fork, entra a Settings, Actions, y comprueba que están habilitadas.
-3. Crea issues de práctica: `./scripts/seed-issues.sh tu-usuario/tu-fork`.
+---
 
-## M1: Agentic Workflows (45 min)
+## 🧰 Pre-requisitos
 
-Se escriben en Markdown con encabezado YAML. `gh aw compile` valida el archivo y genera un `.lock.yml` que Actions ejecuta. Corren con permisos de solo lectura y escriben solo mediante salidas seguras preaprobadas. Complementan a los workflows deterministas, no los reemplazan. El motor por defecto es Copilot CLI y requiere licencia.
+- Workshop 1 terminado, o tu fork con `main` y `npm test` en verde.
+- Extensión `gh-aw` instalada.
+- GitHub CLI 2.90 o superior (lo necesita `gh skill`).
+- Actions habilitado en tu fork.
 
-### Parte A: probar sin tocar tu repo
+---
 
-No hay una ejecución 100% local del agente. Lo más cercano son dos pasos: validar en tu máquina y ejecutar en un repo temporal privado que el CLI crea y que puedes borrar.
+## 📅 Agenda
 
-1. Crea una carpeta vacía con un archivo `triage-demo.md`. Escríbelo tú siguiendo el quickstart oficial de gh-aw: es parte del aprendizaje. Debe activarse al abrirse un issue, tener permisos de solo lectura, usar el motor `copilot` y poder escribir un solo comentario mediante `safe-outputs`.
-2. Validación local, sin ejecutar el agente ni crear nada en GitHub: `gh aw compile --validate --strict`.
-3. Vista previa sin ejecutar: `gh aw trial ./triage-demo.md --dry-run`. Usa la ruta con `./`, si no el CLI puede interpretarla como un repositorio.
-4. Ejecución real en un repo temporal: `gh aw trial ./triage-demo.md --delete-host-repo-after`.
-5. Para un workflow disparado por issues, pasa contexto con `--trigger-context <url-de-un-issue>`.
+| Horario | Ejercicio | Resultado |
+| --- | --- | --- |
+| 0:00 - 0:10 | Ejercicio 0: Arranque | Extensiones listas e issues de práctica creados |
+| 0:10 - 0:55 | Ejercicio 1: Agentic Workflows | Triage de issues y análisis de fallas de CI en Markdown |
+| 0:55 - 1:05 | ☕ Descanso | |
+| 1:05 - 1:40 | Ejercicio 2: Skills y plugins | Una skill fijada por versión y una propia |
+| 1:40 - 2:15 | Ejercicio 3: Agentes y hooks | Un agente revisor y hooks que corren tests y bloquean comandos |
+| 2:15 - 2:45 | Ejercicio 4: SDK en Node.js | Un script que usa Copilot con una herramienta propia |
+| 2:45 - 3:00 | Ejercicio 5: Gobierno y costos | Política de una página para agentes del equipo |
 
-Límites:
+---
 
-- El agente corre en GitHub Actions del repo temporal, no en tu máquina, y consume créditos de IA.
-- Los secretos de tu fork no se heredan. El repo temporal necesita su propio `COPILOT_GITHUB_TOKEN`.
-- Borrar el repo temporal requiere el permiso `delete_repo` en tu token de `gh`.
+## 🔬 Ejercicio 0: Arranque (10 min)
 
-### Parte B: desplegar en tu fork
+### Objetivos
 
-1. Copia el workflow a `.github/workflows/`, compila con `gh aw compile` y haz commit del `.md` y del `.lock.yml`.
-2. Abre un issue nuevo y observa la ejecución en la pestaña Actions.
-3. Comprueba que el agente solo comentó (es lo único que permite `safe-outputs`).
-4. Crea un segundo workflow que analice un fallo de CI. Rompe un test a propósito para dispararlo.
+- ✅ Confirmar que tienes `gh-aw`
+- ✅ Habilitar Actions en tu fork
+- ✅ Crear issues de práctica para el triage
 
-**Para pensar:** qué tareas deben seguir siendo deterministas y por qué.
+### Paso 0.1: Verificar el entorno
 
-## M2: skills y plugins (35 min)
+```bash
+npm run check:setup
+```
 
-`gh skill` es public preview y requiere GitHub CLI 2.90 o superior.
+✅ **Verificar:** la línea `Extensión gh-aw` dice `OK`. Si dice `FALTA`:
 
-1. Busca: `gh skill search terraform`.
-2. Inspecciona antes de instalar: `gh skill preview github/awesome-copilot documentation-writer`.
-3. Instala fijando versión: `gh skill install github/awesome-copilot documentation-writer --pin <sha>`.
-4. Actualiza con `gh skill update --all` y discute por qué se fija una versión.
-5. Crea tu skill en `.github/skills/tasks-api-conventions/SKILL.md` con las convenciones del repo y comprueba que Copilot la usa cuando es relevante.
-6. Empaqueta la skill y un hook en un plugin e instálalo con `/plugin install owner/repo`. Verifica el formato del manifiesto en la guía oficial de plugins.
+```bash
+gh extension install github/gh-aw
+```
 
-Instalar una skill de terceros es ejecutar instrucciones ajenas. Por eso se inspecciona y se fija.
+### Paso 0.2: Habilitar Actions en tu fork
 
-## M3: agentes propios y hooks (35 min)
+1. Abre tu fork en GitHub.
+2. Ve a **Settings → Actions → General**.
+3. Selecciona **Allow all actions and reusable workflows** y guarda.
 
-Un agente propio es un archivo `.agent.md` en `.github/agents/` (del repo) o `~/.copilot/agents/` (personal). Los hooks son comandos que se ejecutan de forma determinista en puntos del flujo del agente y se declaran en `.github/hooks/*.json`.
+### Paso 0.3: Crear los issues de práctica
 
-1. Ejecuta `copilot init` para generar instrucciones del repositorio y edítalas. Agrega un `AGENTS.md` con las convenciones del proyecto.
-2. Crea el agente `api-reviewer`, de solo lectura, que revisa cambios en la API.
-3. Invócalo: `copilot --agent=api-reviewer --prompt "Revisa el último commit"`.
-4. Crea un hook posterior a las herramientas que corra `npm test` después de editar archivos.
-5. Crea un hook previo que bloquee `rm -rf` y `npm publish`. Intenta que el agente los ejecute y comprueba que se frenan.
+Reemplaza `TU-USUARIO` por tu usuario de GitHub:
 
-Verifica el esquema JSON exacto de los hooks en la referencia oficial. Eventos documentados: `preToolUse`, `postToolUse`, `userPromptSubmitted` y `errorOccurred`.
+```bash
+./scripts/seed-issues.sh TU-USUARIO/workshop-copilot-cli-nodejs
+```
 
-## M4: el SDK de Copilot en Node.js (30 min)
+El script pide confirmación antes de crear nada.
 
-El SDK controla Copilot CLI por JSON-RPC: necesita el CLI instalado y autenticado, y Node.js 18 o superior. El patrón es cliente, sesión y mensaje.
+✅ **Verificar:** la pestaña **Issues** de tu fork tiene 4 issues nuevos: un bug, una pregunta, una petición de funcionalidad y uno vago ("No funciona").
 
-1. Crea una carpeta `sdk/` fuera del código de la API y ejecuta `npm install @github/copilot-sdk zod`. Así el repo base no suma dependencias.
-2. Escribe un script mínimo: crea el cliente, abre una sesión, envía un mensaje con `sendAndWait` y cierra con `client.stop()`.
-3. Agrega una herramienta propia con `defineTool` que lea las tareas abiertas de la API (`npm start` en otra terminal).
-4. Pide a Copilot que las priorice y explique el criterio.
+---
 
-El estado del SDK es ambiguo: un anuncio lo da como disponible general, pero la documentación y el paquete de npm lo llaman preview. Las versiones recientes piden además un manejador de permisos al crear la sesión. Si algo no compila, revisa la documentación de la versión instalada.
+## 🔬 Ejercicio 1: Agentic Workflows (45 min)
 
-## M5: gobierno y costos (25 min)
+### Objetivos
 
-Los agentes necesitan permisos amplios para ser útiles, y ahí está el riesgo.
+- ✅ Escribir un workflow agéntico en Markdown
+- ✅ Validarlo y probarlo sin tocar tu repositorio
+- ✅ Desplegarlo en tu fork y verlo trabajar
+- ✅ Crear un segundo workflow que analice fallas de CI
 
-- **Demo, sandbox del CLI:** cómo limita lo que un comando puede tocar.
-- **Demo, cadena de suministro:** lockfiles de Actions, package firewall para npm (preview) y alertas de Dependabot. Ejecuta `npm audit` en este repo y analiza el resultado.
-- **Ejercicio:** escribe una política de una página con tres secciones: qué puede hacer un agente sin aprobación, qué exige a una persona y cuál es el presupuesto mensual de créditos de IA.
+> 💡 **Cómo funcionan:** un Agentic Workflow es un archivo Markdown con un encabezado YAML. `gh aw compile` lo valida y genera un `.lock.yml` que Actions ejecuta. El agente corre con permisos de **solo lectura** y solo puede escribir mediante **salidas seguras** (`safe-outputs`) que tú apruebas de antemano. El motor por defecto es Copilot CLI y requiere licencia.
 
-## Si algo sale mal
+### Parte A: Probar sin tocar tu repositorio
 
-| Problema | Qué hacer |
+> 📝 No existe una ejecución 100 % local del agente. Lo más cercano son dos pasos: validar en tu máquina y ejecutar en un repositorio temporal que el CLI crea y que puedes borrar.
+
+### Paso 1.1: Escribir el workflow
+
+Crea una carpeta de trabajo fuera de tu fork:
+
+```bash
+mkdir -p ~/aw-lab && cd ~/aw-lab
+```
+
+Crea el archivo `triage-demo.md` **escribiéndolo tú**, siguiendo el [quickstart oficial de gh-aw](https://github.github.com/gh-aw/). Escribirlo es parte del aprendizaje.
+
+Tu workflow debe cumplir estos requisitos:
+
+| Requisito | Qué significa |
 | --- | --- |
-| `gh aw trial` falla en la activación | Revisa el secreto `COPILOT_GITHUB_TOKEN` del repo temporal |
+| Se activa al abrirse un issue | El disparador es la apertura de un issue |
+| Permisos de solo lectura | El agente no puede modificar el repositorio |
+| Motor `copilot` | Usa Copilot CLI como agente |
+| Un solo comentario mediante `safe-outputs` | Lo único que puede escribir es un comentario |
+| Instrucciones en Markdown | Clasifica el issue (bug, pregunta, funcionalidad o incompleto) y explica por qué |
+
+> 💡 **Tip:** si te atoras, puedes pedir ayuda a Copilot CLI para **entender** un campo del encabezado: "¿Qué hace safe-outputs en un Agentic Workflow?". Evita pedirle el archivo completo.
+
+### Paso 1.2: Validar en tu máquina
+
+```bash
+gh aw compile --validate --strict
+```
+
+Esto no ejecuta el agente ni crea nada en GitHub.
+
+✅ **Verificar:** el comando termina sin errores. Si rechaza el encabezado, corrígelo y repite.
+
+### Paso 1.3: Vista previa sin ejecutar
+
+```bash
+gh aw trial ./triage-demo.md --dry-run
+```
+
+> ⚠ Usa la ruta con `./`. Sin ella, el CLI puede interpretar el nombre como un repositorio.
+
+### Paso 1.4: Ejecución real en un repositorio temporal
+
+```bash
+gh aw trial ./triage-demo.md --delete-host-repo-after
+```
+
+Para un workflow disparado por issues, pasa un issue real como contexto. Usa uno de los que creaste en el Ejercicio 0:
+
+```bash
+gh aw trial ./triage-demo.md --delete-host-repo-after --trigger-context https://github.com/TU-USUARIO/workshop-copilot-cli-nodejs/issues/1
+```
+
+> ⚠ **Límites de la ejecución temporal:**
+>
+> - El agente corre en GitHub Actions del repositorio temporal, no en tu máquina, y consume créditos de IA.
+> - Los secretos de tu fork no se heredan. El repositorio temporal necesita su propio `COPILOT_GITHUB_TOKEN`.
+> - Borrar el repositorio temporal requiere el permiso `delete_repo` en tu token de `gh` (`gh auth refresh -s delete_repo`).
+
+### Parte B: Desplegar en tu fork
+
+### Paso 1.5: Copiar y compilar
+
+Vuelve a tu fork y copia el workflow:
+
+```bash
+cd ~/ruta/a/workshop-copilot-cli-nodejs
+mkdir -p .github/workflows
+cp ~/aw-lab/triage-demo.md .github/workflows/
+gh aw compile
+```
+
+✅ **Verificar:** existen `.github/workflows/triage-demo.md` y su `.lock.yml`.
+
+### Paso 1.6: Publicar
+
+```bash
+git add .github/workflows/
+git commit -m "Agrega workflow agéntico de triage"
+git push
+```
+
+> 📝 Haz commit del `.md` **y** del `.lock.yml`. Actions ejecuta el `.lock.yml`.
+
+### Paso 1.7: Verlo trabajar
+
+1. Abre un issue nuevo en tu fork, por ejemplo: "La API devuelve 500 al crear una tarea sin título".
+2. Ve a la pestaña **Actions** y observa la ejecución.
+3. Vuelve al issue.
+
+✅ **Verificar:** el agente dejó **un solo comentario** con la clasificación. No cambió etiquetas, no cerró el issue y no tocó código: `safe-outputs` solo le permite comentar.
+
+### Paso 1.8: Segundo workflow, análisis de fallas de CI
+
+Crea un segundo workflow que se active cuando falle el CI y comente un análisis de la causa.
+
+Para probarlo, rompe un test a propósito en una rama:
+
+```bash
+git checkout -b prueba/ci-roto
+# Cambia un valor esperado en test/tasks.test.js
+git commit -am "Rompe un test a propósito"
+git push -u origin prueba/ci-roto
+```
+
+Abre un PR desde esa rama y observa cómo reacciona el workflow.
+
+### 🤔 Para pensar
+
+¿Qué tareas de tu equipo deben seguir siendo deterministas y por qué?
+
+### ✅ Checkpoint del Ejercicio 1
+
+- [ ] `triage-demo.md` validado con `--strict`.
+- [ ] Workflow desplegado y un issue comentado por el agente.
+- [ ] Segundo workflow reaccionando a una falla de CI.
+
+### 🧯 Troubleshooting Ejercicio 1
+
+| Problema | Solución |
+| --- | --- |
 | `gh aw compile` rechaza el encabezado | Compara con la referencia de frontmatter de tu versión de gh-aw |
+| `gh aw trial` falla en la activación | Revisa el secreto `COPILOT_GITHUB_TOKEN` del repositorio temporal |
+| No se borra el repositorio temporal | Agrega el permiso con `gh auth refresh -s delete_repo` |
+| El workflow no se dispara en el fork | Comprueba que Actions está habilitado y que subiste el `.lock.yml` |
+
+---
+
+## 🔬 Ejercicio 2: Skills y plugins (35 min)
+
+### Objetivos
+
+- ✅ Buscar, inspeccionar e instalar una skill de terceros fijando su versión
+- ✅ Crear una skill propia con las convenciones del repositorio
+- ✅ Empaquetar una skill y un hook en un plugin
+
+> ⚠ **Instalar una skill de terceros es ejecutar instrucciones ajenas.** Por eso siempre se inspecciona antes y se fija la versión.
+
+> 📝 `gh skill` está en public preview y requiere GitHub CLI 2.90 o superior.
+
+### Paso 2.1: Buscar skills
+
+```bash
+gh skill search terraform
+```
+
+📝 **Observa:** cada resultado indica el repositorio de origen. Fíjate en quién lo publica.
+
+### Paso 2.2: Inspeccionar antes de instalar
+
+```bash
+gh skill preview github/awesome-copilot documentation-writer
+```
+
+Lee el contenido completo. Pregúntate: ¿qué instrucciones le da al agente? ¿Ejecuta scripts?
+
+### Paso 2.3: Instalar fijando la versión
+
+```bash
+gh skill install github/awesome-copilot documentation-writer --pin <sha>
+```
+
+Reemplaza `<sha>` por el commit de la versión que inspeccionaste.
+
+### Paso 2.4: Actualizar y discutir
+
+```bash
+gh skill update --all
+```
+
+**🤔 Para pensar:** ¿qué pasaría si no fijas la versión y el autor cambia la skill mañana?
+
+### Paso 2.5: Crear tu propia skill
+
+Abre `copilot` en la raíz de tu fork.
+
+🤖 **PROMPT:**
+
+```text
+Crea .github/skills/tasks-api-conventions/SKILL.md con las convenciones de este repositorio: API con node:http sin frameworks, errores en JSON con la forma { error: "mensaje en español" }, códigos HTTP 400/404/405, tests con node:test y sin dependencias nuevas. Incluye el encabezado YAML con name y description.
+```
+
+Revisa el archivo. Corrige lo que no refleje cómo trabaja realmente el repositorio.
+
+### Paso 2.6: Comprobar que Copilot usa tu skill
+
+Abre una sesión nueva de `copilot`.
+
+🤖 **PROMPT:**
+
+```text
+Agrega un endpoint GET /tasks/stats que devuelva cuántas tareas hay abiertas y cerradas.
+```
+
+✅ **Verificar:** el código generado sigue las convenciones de tu skill (errores en español, sin dependencias nuevas, tests con `node:test`).
+
+### Paso 2.7: Empaquetar en un plugin
+
+1. Revisa en la guía oficial de plugins el formato del manifiesto.
+2. Crea un plugin que incluya tu skill y un hook (puedes reutilizar uno del Ejercicio 3).
+3. Instálalo:
+
+   ```text
+   /plugin install TU-USUARIO/tu-repo-de-plugin
+   ```
+
+> 📝 Este paso requiere publicar el plugin en un repositorio de GitHub.
+
+### ✅ Checkpoint del Ejercicio 2
+
+- [ ] Una skill de terceros instalada con versión fijada.
+- [ ] `.github/skills/tasks-api-conventions/SKILL.md` creado y usado por Copilot.
+
+### 🧯 Troubleshooting Ejercicio 2
+
+| Problema | Solución |
+| --- | --- |
+| `gh skill` no existe | Actualiza GitHub CLI a 2.90 o superior |
+| Copilot no usa mi skill | Revisa que el `description` del encabezado explique cuándo usarla |
+| No sé qué SHA usar | Usa el commit del repositorio de la skill en la versión que revisaste |
+
+---
+
+## 🔬 Ejercicio 3: Agentes propios y hooks (35 min)
+
+### Objetivos
+
+- ✅ Dar contexto del proyecto a Copilot con `AGENTS.md`
+- ✅ Crear un agente revisor de solo lectura
+- ✅ Crear hooks que corren tests y bloquean comandos peligrosos
+
+> 💡 **Agente frente a hook:** un agente **decide** qué hacer a partir de instrucciones. Un hook se ejecuta **siempre**, sin importar lo que decida el modelo. Usa hooks para reglas que no pueden fallar.
+
+### Paso 3.1: Generar instrucciones del repositorio
+
+```bash
+copilot init
+```
+
+Revisa y edita el archivo que genera. Debe describir el proyecto como tú lo describirías.
+
+### Paso 3.2: Crear `AGENTS.md`
+
+🤖 **PROMPT — escribe en Copilot CLI:**
+
+```text
+Crea AGENTS.md en la raíz con las convenciones del proyecto: cómo correr los tests, qué no se debe modificar, cómo se nombran las ramas y que cada cambio necesita tests.
+```
+
+### Paso 3.3: Crear el agente revisor
+
+🤖 **PROMPT:**
+
+```text
+Crea .github/agents/api-reviewer.agent.md con un agente llamado api-reviewer. Es de solo lectura: no puede editar archivos ni ejecutar comandos que modifiquen el repositorio. Revisa cambios en la API buscando validaciones faltantes, códigos HTTP incorrectos y tests ausentes. Responde con una lista de hallazgos ordenada por severidad.
+```
+
+Revisa que el encabezado del agente restrinja las herramientas.
+
+### Paso 3.4: Invocar el agente
+
+Sal de la sesión y ejecuta:
+
+```bash
+copilot --agent=api-reviewer --prompt "Revisa el último commit"
+```
+
+✅ **Verificar:** el agente responde con hallazgos y **no modifica** ningún archivo (`git status` limpio).
+
+### Paso 3.5: Hook que corre los tests
+
+Crea un hook `postToolUse` en `.github/hooks/` que ejecute `npm test` después de que el agente edite archivos.
+
+🤖 **PROMPT:**
+
+```text
+Crea .github/hooks/tests.json con un hook postToolUse que ejecute npm test cada vez que el agente edite un archivo.
+```
+
+### Paso 3.6: Hook que bloquea comandos peligrosos
+
+🤖 **PROMPT:**
+
+```text
+Crea .github/hooks/bloqueos.json con un hook preToolUse que bloquee cualquier comando que contenga rm -rf o npm publish.
+```
+
+### Paso 3.7: Comprobar los bloqueos
+
+Abre una sesión nueva de `copilot` y pide:
+
+```text
+Borra la carpeta test con rm -rf.
+```
+
+✅ **Verificar:** el hook frena el comando y la carpeta `test/` sigue ahí.
+
+> ⚠ Verifica el esquema JSON exacto de los hooks en la referencia oficial. Eventos documentados: `preToolUse`, `postToolUse`, `userPromptSubmitted` y `errorOccurred`.
+
+### ✅ Checkpoint del Ejercicio 3
+
+- [ ] `AGENTS.md` en la raíz.
+- [ ] Agente `api-reviewer` que revisa sin modificar.
+- [ ] Hook que corre `npm test` y hook que bloquea `rm -rf` y `npm publish`.
+
+### 🧯 Troubleshooting Ejercicio 3
+
+| Problema | Solución |
+| --- | --- |
+| El agente no aparece con `--agent` | Revisa que el archivo termine en `.agent.md` y esté en `.github/agents/` |
 | El hook no se ejecuta | Confirma la ruta `.github/hooks/*.json` y el esquema en la referencia oficial |
+| El agente revisor editó archivos | Restringe sus herramientas en el encabezado y descarta los cambios con `git checkout .` |
+
+---
+
+## 🔬 Ejercicio 4: El SDK de Copilot en Node.js (30 min)
+
+### Objetivos
+
+- ✅ Controlar Copilot desde un script de Node.js
+- ✅ Darle una herramienta propia que lee datos reales de la API
+- ✅ Pedirle que razone sobre esos datos
+
+> 💡 **Cómo funciona:** el SDK controla Copilot CLI por JSON-RPC. Necesita el CLI instalado y autenticado, y Node.js 18 o superior. El patrón siempre es el mismo: **cliente → sesión → mensaje**.
+
+### Paso 4.1: Crear el proyecto del script
+
+Crea una carpeta `sdk/` con su propio `package.json`, para que el repositorio base no sume dependencias:
+
+```bash
+mkdir sdk && cd sdk
+npm init -y
+npm pkg set type=module
+npm install @github/copilot-sdk zod
+```
+
+### Paso 4.2: Escribir el script mínimo
+
+Abre `copilot` en la carpeta `sdk/`.
+
+🤖 **PROMPT:**
+
+```text
+Escribe demo.mjs usando @github/copilot-sdk: crea un cliente, abre una sesión, envía el mensaje "Hola, ¿qué puedes hacer?" con sendAndWait, imprime la respuesta y cierra con client.stop().
+```
+
+Ejecútalo:
+
+```bash
+node demo.mjs
+```
+
+✅ **Verificar:** el script imprime la respuesta de Copilot y termina.
+
+### Paso 4.3: Agregar una herramienta propia
+
+En otra terminal, arranca la API desde la raíz del fork:
+
+```bash
+npm start
+```
+
+La API queda en `http://localhost:3000`.
+
+🤖 **PROMPT:**
+
+```text
+Agrega a demo.mjs una herramienta con defineTool llamada listar_tareas_abiertas que haga fetch a http://localhost:3000/tasks?status=open y devuelva el resultado. Usa zod para el esquema de parámetros.
+```
+
+### Paso 4.4: Pedir que priorice
+
+Cambia el mensaje del script por:
+
+```text
+Usa listar_tareas_abiertas y prioriza las tareas. Explica el criterio que usaste.
+```
+
+```bash
+node demo.mjs
+```
+
+✅ **Verificar:** la respuesta menciona tareas reales de la API y explica el orden.
+
+> ⚠ **Estado del SDK:** un anuncio lo da como disponible general, pero la documentación y el paquete de npm lo llaman preview. Las versiones recientes piden un manejador de permisos al crear la sesión. Si algo no compila, revisa la documentación de la versión instalada.
+
+### ✅ Checkpoint del Ejercicio 4
+
+- [ ] `sdk/demo.mjs` funciona y usa una herramienta propia.
+- [ ] Copilot prioriza tareas reales de la API.
+
+### 🧯 Troubleshooting Ejercicio 4
+
+| Problema | Solución |
+| --- | --- |
+| `Cannot use import statement outside a module` | Ejecuta `npm pkg set type=module` en `sdk/` o usa la extensión `.mjs` |
 | El SDK pide permisos | Agrega el manejador de permisos que indica la documentación de tu versión |
+| `fetch failed` | La API no está corriendo. Ejecuta `npm start` en la raíz del fork |
+| El SDK no encuentra Copilot CLI | Comprueba `copilot --version` y que tengas sesión iniciada |
+
+---
+
+## 🔬 Ejercicio 5: Gobierno y costos (25 min)
+
+### Objetivos
+
+- ✅ Ver cómo se limita lo que puede tocar un agente
+- ✅ Revisar la cadena de suministro del repositorio
+- ✅ Escribir una política de agentes para tu equipo
+
+> 💡 **La idea:** los agentes necesitan permisos amplios para ser útiles, y ahí está el riesgo. El gobierno define hasta dónde llegan.
+
+### Paso 5.1: Demo del sandbox del CLI (instructor)
+
+El instructor muestra cómo el sandbox de Copilot CLI limita lo que un comando puede tocar.
+
+### Paso 5.2: Demo de cadena de suministro (instructor)
+
+El instructor muestra lockfiles de Actions, el package firewall para npm (preview) y las alertas de Dependabot.
+
+### Paso 5.3: Auditar las dependencias
+
+En la raíz de tu fork:
+
+```bash
+npm audit
+```
+
+📝 **Observa:** hay una dependencia con una vulnerabilidad conocida. Se dejó a propósito.
+
+🤖 **PROMPT — escribe en Copilot CLI:**
+
+```text
+Explica el resultado de npm audit: qué vulnerabilidad hay, si afecta a esta API y cuál es la corrección más segura.
+```
+
+### Paso 5.4: Escribir la política de agentes
+
+Crea `docs/politica-agentes.md` en tu fork con **tres secciones**, máximo una página:
+
+| Sección | Qué responde | Ejemplo |
+| --- | --- | --- |
+| Sin aprobación | Qué puede hacer un agente solo | Leer código, correr tests, abrir PRs en borrador |
+| Con aprobación humana | Qué exige que una persona revise | Mergear, agregar dependencias, tocar workflows |
+| Presupuesto | Cuántos créditos de IA al mes y quién los vigila | Límite por persona y alerta al 80 % |
+
+> 💡 Puedes pedir a Copilot un borrador, pero las decisiones son tuyas. Una política que nadie del equipo discutió no se cumple.
+
+### ✅ Checkpoint del Ejercicio 5
+
+- [ ] Resultado de `npm audit` entendido.
+- [ ] `docs/politica-agentes.md` con las tres secciones.
+
+---
+
+## 🆘 ¿Te quedaste atrás?
+
+| Situación | Qué hacer |
+| --- | --- |
+| No terminé el Workshop 1 | Basta con que `main` de tu fork tenga `npm test` en verde |
+| `gh aw trial` no funciona en mi cuenta | Quédate con la validación local (Pasos 1.2 y 1.3) y pasa a la Parte B |
+| No puedo publicar un plugin | Omite el Paso 2.7. El resto del ejercicio no depende de él |
+| El SDK no compila en mi versión | Revisa la documentación del paquete instalado y compara con el patrón cliente, sesión, mensaje |
+
+---
+
+## ✅ Checklist final
+
+### Automatización
+
+- [ ] `.github/workflows/triage-demo.md` y su `.lock.yml`
+- [ ] Workflow de análisis de fallas de CI
+
+### Personalización de Copilot
+
+- [ ] Skill de terceros instalada con versión fijada
+- [ ] `.github/skills/tasks-api-conventions/SKILL.md`
+- [ ] `AGENTS.md`
+- [ ] `.github/agents/api-reviewer.agent.md`
+- [ ] Hooks en `.github/hooks/`
+
+### Código y gobierno
+
+- [ ] `sdk/demo.mjs` con una herramienta propia
+- [ ] `docs/politica-agentes.md`
+
+---
+
+## 📖 Referencia rápida
+
+### gh aw
+
+| Comando | Qué hace |
+| --- | --- |
+| `gh aw compile --validate --strict` | Valida el workflow sin ejecutar nada |
+| `gh aw trial ./archivo.md --dry-run` | Vista previa sin ejecutar |
+| `gh aw trial ./archivo.md --delete-host-repo-after` | Ejecuta en un repositorio temporal y lo borra |
+| `gh aw compile` | Genera el `.lock.yml` |
+
+### gh skill
+
+| Comando | Qué hace |
+| --- | --- |
+| `gh skill search <término>` | Busca skills |
+| `gh skill preview <repo> <skill>` | Muestra el contenido antes de instalar |
+| `gh skill install <repo> <skill> --pin <sha>` | Instala fijando la versión |
+| `gh skill update --all` | Actualiza las skills instaladas |
+
+### Copilot CLI
+
+| Comando | Qué hace |
+| --- | --- |
+| `copilot init` | Genera instrucciones del repositorio |
+| `copilot --agent=<nombre> --prompt "<texto>"` | Ejecuta un agente propio |
+| `/plugin install <owner/repo>` | Instala un plugin |
+
+### Eventos de hooks
+
+| Evento | Cuándo se ejecuta |
+| --- | --- |
+| `preToolUse` | Antes de que el agente use una herramienta. Puede bloquearla |
+| `postToolUse` | Después de que el agente usa una herramienta |
+| `userPromptSubmitted` | Cuando envías un prompt |
+| `errorOccurred` | Cuando ocurre un error |
+
+---
+
+⬅ **Anterior:** [Workshop 1: Del issue al merge con agentes en la terminal](workshop-1.md)
