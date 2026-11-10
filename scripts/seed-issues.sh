@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crea 4 issues de ejemplo en TU fork para practicar triage (Workshop 2, módulo 1).
+# Crea 4 issues de ejemplo en TU repositorio de GitHub para practicar triage (Workshop 2, ejercicio 0).
 # Uso: ./scripts/seed-issues.sh owner/repo
 # Requiere: gh con sesión iniciada. Pide confirmación antes de crear nada.
 

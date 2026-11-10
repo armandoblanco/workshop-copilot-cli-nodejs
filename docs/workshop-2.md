@@ -67,10 +67,10 @@ Al terminar habrás:
 
 ## 🧰 Pre-requisitos
 
-- Workshop 1 terminado, o tu fork con `main` y `npm test` en verde.
+- Workshop 1 terminado, o el repositorio clonado con `npm test` en verde.
 - Extensión `gh-aw` instalada.
 - GitHub CLI 2.90 o superior (lo necesita `gh skill`).
-- Actions habilitado en tu fork.
+- (🌐 opcional) Un repositorio propio en GitHub con Actions habilitado, solo para los pasos marcados con 🌐. Consulta el [Paso 2 del README](../README.md#paso-2-repositorio-propio-en-github--opcional).
 
 ---
 
@@ -78,8 +78,8 @@ Al terminar habrás:
 
 | Horario | Ejercicio | Resultado |
 | --- | --- | --- |
-| 0:00 - 0:10 | Ejercicio 0: Arranque | Extensiones listas e issues de práctica creados |
-| 0:10 - 0:55 | Ejercicio 1: Agentic Workflows | Triage de issues y análisis de fallas de CI en Markdown |
+| 0:00 - 0:10 | Ejercicio 0: Arranque | Extensiones listas |
+| 0:10 - 0:55 | Ejercicio 1: Agentic Workflows | Un workflow de triage escrito y validado en local |
 | 0:55 - 1:05 | ☕ Descanso | |
 | 1:05 - 1:40 | Ejercicio 2: Skills y plugins | Una skill fijada por versión y una propia |
 | 1:40 - 2:15 | Ejercicio 3: Agentes y hooks | Un agente revisor y hooks que corren tests y bloquean comandos |
@@ -93,8 +93,7 @@ Al terminar habrás:
 ### Objetivos
 
 - ✅ Confirmar que tienes `gh-aw`
-- ✅ Habilitar Actions en tu fork
-- ✅ Crear issues de práctica para el triage
+- ✅ (🌐 opcional) Preparar tu repositorio propio con Actions e issues de práctica
 
 ### Paso 0.1: Verificar el entorno
 
@@ -108,23 +107,25 @@ npm run check:setup
 gh extension install github/gh-aw
 ```
 
-### Paso 0.2: Habilitar Actions en tu fork
+### Paso 0.2: Habilitar Actions (🌐 opcional)
 
-1. Abre tu fork en GitHub.
+> 📝 Si trabajas solo en local, salta al [Ejercicio 1](#-ejercicio-1-agentic-workflows-45-min).
+
+1. Abre tu repositorio propio en GitHub.
 2. Ve a **Settings → Actions → General**.
 3. Selecciona **Allow all actions and reusable workflows** y guarda.
 
-### Paso 0.3: Crear los issues de práctica
+### Paso 0.3: Crear los issues de práctica (🌐 opcional)
 
-Reemplaza `TU-USUARIO` por tu usuario de GitHub:
+Reemplaza `TU-USUARIO/TU-REPO` por tu repositorio propio:
 
 ```bash
-./scripts/seed-issues.sh TU-USUARIO/workshop-copilot-cli-nodejs
+./scripts/seed-issues.sh TU-USUARIO/TU-REPO
 ```
 
 El script pide confirmación antes de crear nada.
 
-✅ **Verificar:** la pestaña **Issues** de tu fork tiene 4 issues nuevos: un bug, una pregunta, una petición de funcionalidad y uno vago ("No funciona").
+✅ **Verificar:** la pestaña **Issues** de tu repositorio tiene 4 issues nuevos: un bug, una pregunta, una petición de funcionalidad y uno vago ("No funciona").
 
 ---
 
@@ -133,19 +134,19 @@ El script pide confirmación antes de crear nada.
 ### Objetivos
 
 - ✅ Escribir un workflow agéntico en Markdown
-- ✅ Validarlo y probarlo sin tocar tu repositorio
-- ✅ Desplegarlo en tu fork y verlo trabajar
-- ✅ Crear un segundo workflow que analice fallas de CI
+- ✅ Validarlo en tu máquina
+- ✅ (🌐 opcional) Probarlo en un repositorio temporal y desplegarlo en GitHub
+- ✅ (🌐 opcional) Crear un segundo workflow que analice fallas de CI
 
 > 💡 **Cómo funcionan:** un Agentic Workflow es un archivo Markdown con un encabezado YAML. `gh aw compile` lo valida y genera un `.lock.yml` que Actions ejecuta. El agente corre con permisos de **solo lectura** y solo puede escribir mediante **salidas seguras** (`safe-outputs`) que tú apruebas de antemano. El motor por defecto es Copilot CLI y requiere licencia.
 
-### Parte A: Probar sin tocar tu repositorio
+### Parte A: Escribir y validar en local
 
-> 📝 No existe una ejecución 100 % local del agente. Lo más cercano son dos pasos: validar en tu máquina y ejecutar en un repositorio temporal que el CLI crea y que puedes borrar.
+> 📝 El agente de un Agentic Workflow siempre corre en GitHub Actions, no en tu máquina. En local puedes escribir el workflow y validarlo. Ejecutarlo requiere GitHub (🌐).
 
 ### Paso 1.1: Escribir el workflow
 
-Crea una carpeta de trabajo fuera de tu fork:
+Crea una carpeta de trabajo fuera del repositorio:
 
 ```bash
 mkdir -p ~/aw-lab && cd ~/aw-lab
@@ -183,29 +184,31 @@ gh aw trial ./triage-demo.md --dry-run
 
 > ⚠ Usa la ruta con `./`. Sin ella, el CLI puede interpretar el nombre como un repositorio.
 
-### Paso 1.4: Ejecución real en un repositorio temporal
+### Paso 1.4: Ejecución real en un repositorio temporal (🌐 opcional)
+
+El CLI crea un repositorio temporal en tu cuenta de GitHub, ejecuta el workflow y lo borra al terminar. No sube tu código.
 
 ```bash
 gh aw trial ./triage-demo.md --delete-host-repo-after
 ```
 
-Para un workflow disparado por issues, pasa un issue real como contexto. Usa uno de los que creaste en el Ejercicio 0:
+Para un workflow disparado por issues, pasa un issue real como contexto, por ejemplo uno de tu repositorio propio:
 
 ```bash
-gh aw trial ./triage-demo.md --delete-host-repo-after --trigger-context https://github.com/TU-USUARIO/workshop-copilot-cli-nodejs/issues/1
+gh aw trial ./triage-demo.md --delete-host-repo-after --trigger-context https://github.com/TU-USUARIO/TU-REPO/issues/1
 ```
 
 > ⚠ **Límites de la ejecución temporal:**
 >
 > - El agente corre en GitHub Actions del repositorio temporal, no en tu máquina, y consume créditos de IA.
-> - Los secretos de tu fork no se heredan. El repositorio temporal necesita su propio `COPILOT_GITHUB_TOKEN`.
+> - Los secretos de tus repositorios no se heredan. El repositorio temporal necesita su propio `COPILOT_GITHUB_TOKEN`.
 > - Borrar el repositorio temporal requiere el permiso `delete_repo` en tu token de `gh` (`gh auth refresh -s delete_repo`).
 
-### Parte B: Desplegar en tu fork
+### Parte B: Integrar en el repositorio
 
 ### Paso 1.5: Copiar y compilar
 
-Vuelve a tu fork y copia el workflow:
+Vuelve al repositorio del taller y copia el workflow:
 
 ```bash
 cd ~/ruta/a/workshop-copilot-cli-nodejs
@@ -216,25 +219,34 @@ gh aw compile
 
 ✅ **Verificar:** existen `.github/workflows/triage-demo.md` y su `.lock.yml`.
 
-### Paso 1.6: Publicar
+Haz commit en local:
 
 ```bash
 git add .github/workflows/
 git commit -m "Agrega workflow agéntico de triage"
-git push
 ```
 
 > 📝 Haz commit del `.md` **y** del `.lock.yml`. Actions ejecuta el `.lock.yml`.
 
+### Parte C: Verlo trabajar en GitHub (🌐 opcional)
+
+> 📝 Si trabajas solo en local, salta al [Ejercicio 2](#-ejercicio-2-skills-y-plugins-35-min).
+
+### Paso 1.6: Publicar en tu repositorio propio
+
+```bash
+git push
+```
+
 ### Paso 1.7: Verlo trabajar
 
-1. Abre un issue nuevo en tu fork, por ejemplo: "La API devuelve 500 al crear una tarea sin título".
+1. Abre un issue nuevo en tu repositorio, por ejemplo: "La API devuelve 500 al crear una tarea sin título".
 2. Ve a la pestaña **Actions** y observa la ejecución.
 3. Vuelve al issue.
 
 ✅ **Verificar:** el agente dejó **un solo comentario** con la clasificación. No cambió etiquetas, no cerró el issue y no tocó código: `safe-outputs` solo le permite comentar.
 
-### Paso 1.8: Segundo workflow, análisis de fallas de CI
+### Paso 1.8: Segundo workflow, análisis de fallas de CI (🌐 opcional)
 
 Crea un segundo workflow que se active cuando falle el CI y comente un análisis de la causa.
 
@@ -255,9 +267,9 @@ Abre un PR desde esa rama y observa cómo reacciona el workflow.
 
 ### ✅ Checkpoint del Ejercicio 1
 
-- [ ] `triage-demo.md` validado con `--strict`.
-- [ ] Workflow desplegado y un issue comentado por el agente.
-- [ ] Segundo workflow reaccionando a una falla de CI.
+- [ ] `triage-demo.md` validado con `--strict` y con su `.lock.yml` en el repositorio.
+- [ ] (🌐 opcional) Workflow desplegado y un issue comentado por el agente.
+- [ ] (🌐 opcional) Segundo workflow reaccionando a una falla de CI.
 
 ### 🧯 Troubleshooting Ejercicio 1
 
@@ -266,7 +278,7 @@ Abre un PR desde esa rama y observa cómo reacciona el workflow.
 | `gh aw compile` rechaza el encabezado | Compara con la referencia de frontmatter de tu versión de gh-aw |
 | `gh aw trial` falla en la activación | Revisa el secreto `COPILOT_GITHUB_TOKEN` del repositorio temporal |
 | No se borra el repositorio temporal | Agrega el permiso con `gh auth refresh -s delete_repo` |
-| El workflow no se dispara en el fork | Comprueba que Actions está habilitado y que subiste el `.lock.yml` |
+| El workflow no se dispara en GitHub | Comprueba que Actions está habilitado en tu repositorio y que subiste el `.lock.yml` |
 
 ---
 
@@ -276,7 +288,7 @@ Abre un PR desde esa rama y observa cómo reacciona el workflow.
 
 - ✅ Buscar, inspeccionar e instalar una skill de terceros fijando su versión
 - ✅ Crear una skill propia con las convenciones del repositorio
-- ✅ Empaquetar una skill y un hook en un plugin
+- ✅ (🌐 opcional) Empaquetar una skill y un hook en un plugin
 
 > ⚠ **Instalar una skill de terceros es ejecutar instrucciones ajenas.** Por eso siempre se inspecciona antes y se fija la versión.
 
@@ -316,7 +328,7 @@ gh skill update --all
 
 ### Paso 2.5: Crear tu propia skill
 
-Abre `copilot` en la raíz de tu fork.
+Abre `copilot` en la raíz del repositorio.
 
 🤖 **PROMPT:**
 
@@ -338,7 +350,7 @@ Agrega un endpoint GET /tasks/stats que devuelva cuántas tareas hay abiertas y 
 
 ✅ **Verificar:** el código generado sigue las convenciones de tu skill (errores en español, sin dependencias nuevas, tests con `node:test`).
 
-### Paso 2.7: Empaquetar en un plugin
+### Paso 2.7: Empaquetar en un plugin (🌐 opcional)
 
 1. Revisa en la guía oficial de plugins el formato del manifiesto.
 2. Crea un plugin que incluya tu skill y un hook (puedes reutilizar uno del Ejercicio 3).
@@ -498,7 +510,7 @@ node demo.mjs
 
 ### Paso 4.3: Agregar una herramienta propia
 
-En otra terminal, arranca la API desde la raíz del fork:
+En otra terminal, arranca la API desde la raíz del repositorio:
 
 ```bash
 npm start
@@ -539,7 +551,7 @@ node demo.mjs
 | --- | --- |
 | `Cannot use import statement outside a module` | Ejecuta `npm pkg set type=module` en `sdk/` o usa la extensión `.mjs` |
 | El SDK pide permisos | Agrega el manejador de permisos que indica la documentación de tu versión |
-| `fetch failed` | La API no está corriendo. Ejecuta `npm start` en la raíz del fork |
+| `fetch failed` | La API no está corriendo. Ejecuta `npm start` en la raíz del repositorio |
 | El SDK no encuentra Copilot CLI | Comprueba `copilot --version` y que tengas sesión iniciada |
 
 ---
@@ -564,7 +576,7 @@ El instructor muestra lockfiles de Actions, el package firewall para npm (previe
 
 ### Paso 5.3: Auditar las dependencias
 
-En la raíz de tu fork:
+En la raíz del repositorio:
 
 ```bash
 npm audit
@@ -580,7 +592,7 @@ Explica el resultado de npm audit: qué vulnerabilidad hay, si afecta a esta API
 
 ### Paso 5.4: Escribir la política de agentes
 
-Crea `docs/politica-agentes.md` en tu fork con **tres secciones**, máximo una página:
+Crea `docs/politica-agentes.md` en el repositorio con **tres secciones**, máximo una página:
 
 | Sección | Qué responde | Ejemplo |
 | --- | --- | --- |
@@ -601,8 +613,9 @@ Crea `docs/politica-agentes.md` en tu fork con **tres secciones**, máximo una p
 
 | Situación | Qué hacer |
 | --- | --- |
-| No terminé el Workshop 1 | Basta con que `main` de tu fork tenga `npm test` en verde |
-| `gh aw trial` no funciona en mi cuenta | Quédate con la validación local (Pasos 1.2 y 1.3) y pasa a la Parte B |
+| No terminé el Workshop 1 | Basta con que `main` de tu copia local tenga `npm test` en verde |
+| No tengo repositorio propio en GitHub | Haz solo los pasos locales. Los marcados con 🌐 son opcionales |
+| `gh aw trial` no funciona en mi cuenta | Quédate con la validación local (Pasos 1.2 y 1.3) y sigue con la Parte B |
 | No puedo publicar un plugin | Omite el Paso 2.7. El resto del ejercicio no depende de él |
 | El SDK no compila en mi versión | Revisa la documentación del paquete instalado y compara con el patrón cliente, sesión, mensaje |
 
@@ -613,7 +626,7 @@ Crea `docs/politica-agentes.md` en tu fork con **tres secciones**, máximo una p
 ### Automatización
 
 - [ ] `.github/workflows/triage-demo.md` y su `.lock.yml`
-- [ ] Workflow de análisis de fallas de CI
+- [ ] (🌐 opcional) Workflow de análisis de fallas de CI
 
 ### Personalización de Copilot
 

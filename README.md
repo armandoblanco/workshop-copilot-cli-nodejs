@@ -29,7 +29,7 @@ Al terminar los dos workshops sabrás:
 - ✅ Elegir el modelo adecuado (Fusion, Auto o un modelo fijo) y medir lo que cuesta
 - ✅ Planear con Copilot y pedir una segunda opinión con rubber duck
 - ✅ Trabajar con varios agentes en paralelo sin que se pisen
-- ✅ Dividir un cambio grande en PRs apilados
+- ✅ Dividir un cambio grande en ramas apiladas (stacked PRs)
 - ✅ Automatizar tareas con Agentic Workflows, skills, agentes propios y hooks
 - ✅ Usar el SDK de Copilot desde Node.js
 - ✅ Definir qué puede hacer un agente sin pedir permiso y qué no
@@ -65,6 +65,8 @@ La API usa `node:http` sin frameworks, guarda los datos en memoria ([src/store.j
 
 Haz el Workshop 1 primero. El Workshop 2 parte del código que dejaste en `main`.
 
+> 🌐 **Leyenda:** los pasos marcados con 🌐 necesitan un repositorio propio en GitHub y son opcionales. Todo lo demás funciona en tu máquina.
+
 ---
 
 ## 🧰 Pre-requisitos
@@ -98,20 +100,27 @@ gh extension install github/gh-aw
 
 ## 🚀 Cómo empezar
 
-### Paso 1: Haz un fork y clónalo
+### Paso 1: Clona el repositorio
 
 ```bash
-gh repo fork armandoblanco/workshop-copilot-cli-nodejs --clone
+git clone https://github.com/armandoblanco/workshop-copilot-cli-nodejs.git
 cd workshop-copilot-cli-nodejs
+git remote rename origin upstream
 ```
 
-> 💡 Trabaja siempre en **tu fork**. Varios ejercicios abren PRs, crean issues o ejecutan Actions, y no quieres hacer eso en un repositorio compartido.
+> 💡 Todo el laboratorio se hace **en local**, no necesitas un fork. Renombrar `origin` a `upstream` evita que un `git push` intente subir tus cambios. Si el taller se actualiza, tráelo con `git pull upstream main`.
 
-### Paso 2: Habilita GitHub Actions en tu fork
+### Paso 2: Repositorio propio en GitHub (🌐 opcional)
 
-1. Abre tu fork en GitHub.
-2. Ve a **Settings → Actions → General**.
-3. Selecciona **Allow all actions and reusable workflows** y guarda.
+Algunos pasos están marcados con 🌐 porque necesitan GitHub: delegar a agentes en la nube, abrir PRs o ejecutar Actions. Son **opcionales**. Si quieres hacerlos, crea un repositorio privado tuyo desde la copia local:
+
+```bash
+gh repo create mi-workshop-copilot --private --source=. --remote=origin --push
+```
+
+Luego habilita Actions en ese repositorio: **Settings → Actions → General → Allow all actions and reusable workflows**.
+
+> 📝 Si trabajas solo en local, omite este paso y los pasos 🌐 de las guías.
 
 ### Paso 3: Verifica tu entorno
 
@@ -157,7 +166,7 @@ docs/         Guías paso a paso de cada workshop
 
 | Práctica | Por qué |
 | --- | --- |
-| Trabaja en tu fork y en ramas | Un error de un agente no afecta a nadie más |
+| Trabaja en local y en ramas | Un error de un agente no afecta a nadie más |
 | Lee cada cambio antes de aprobarlo | Aprobar sin leer es la forma más rápida de aprender mal |
 | No des permisos amplios por comodidad | Un agente con todos los permisos puede borrar o publicar |
 | No pongas secretos en prompts, archivos ni logs | Todo lo que escribes puede terminar en un commit |

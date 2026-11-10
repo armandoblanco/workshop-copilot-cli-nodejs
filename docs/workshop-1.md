@@ -34,8 +34,8 @@ Al terminar habrás:
 
 - ✅ Corregido el mismo bug con cuatro modelos distintos y comparado costo contra calidad
 - ✅ Planeado una funcionalidad y pedido una crítica a otro modelo con rubber duck
-- ✅ Lanzado cuatro tareas en paralelo: dos agentes locales y dos en la nube
-- ✅ Dividido una funcionalidad en tres PRs apilados
+- ✅ Lanzado varias tareas en paralelo con agentes locales y, opcionalmente, en la nube
+- ✅ Dividido una funcionalidad en tres ramas apiladas
 - ✅ Revisado código generado por agentes con una checklist humana antes de mergear
 
 ---
@@ -110,7 +110,7 @@ git worktree remove ../otra-carpeta              # la elimina
 
 Completa la sección [Cómo empezar](../README.md#-cómo-empezar) del README antes de este laboratorio. En resumen:
 
-- Fork del repositorio clonado en tu máquina.
+- Repositorio clonado en tu máquina (no necesitas un fork).
 - `npm run check:setup` sin elementos en `FALTA`.
 - Node.js 22+, Git 2.20+, GitHub CLI 2.90+, Copilot CLI y la extensión `gh-stack`.
 
@@ -125,7 +125,7 @@ Completa la sección [Cómo empezar](../README.md#-cómo-empezar) del README ant
 | 0:50 - 1:25 | Ejercicio 2: Plan y rubber duck | Paginación planeada, criticada e implementada |
 | 1:25 - 1:35 | ☕ Descanso | |
 | 1:35 - 2:10 | Ejercicio 3: Agentes en paralelo | Cuatro tareas en paralelo integradas en `main` |
-| 2:10 - 2:35 | Ejercicio 4: Stacked PRs | Una funcionalidad dividida en tres PRs apilados |
+| 2:10 - 2:35 | Ejercicio 4: Stacked PRs | Una funcionalidad dividida en tres ramas apiladas |
 | 2:35 - 2:50 | Ejercicio 5: Revisión y merge | Checklist de revisión humana aplicada |
 | 2:50 - 3:00 | Ejercicio 6: Costos y cierre | Costo de cada enfoque comparado |
 
@@ -135,7 +135,7 @@ Completa la sección [Cómo empezar](../README.md#-cómo-empezar) del README ant
 
 ## 📏 Reglas del laboratorio
 
-1. **Trabaja siempre en tu fork**, nunca en un repositorio de tu organización.
+1. **Trabaja en tu copia local.** Los pasos marcados con 🌐 necesitan un repositorio propio en GitHub y son opcionales (ver el [Paso 2 del README](../README.md#paso-2-repositorio-propio-en-github--opcional)).
 2. **Lee lo que el agente propone antes de aprobar.** Aprobar sin leer es la forma más rápida de aprender mal.
 3. **Anota los créditos de IA** que consumes en cada ejercicio. Los usarás en el Ejercicio 6.
 4. **Si un comando falla o no existe en tu versión, no te bloquees:** anótalo y sigue. Las funciones nuevas cambian cada semana y una de las metas es que sepas detectarlo.
@@ -153,7 +153,7 @@ Completa la sección [Cómo empezar](../README.md#-cómo-empezar) del README ant
 
 ### Paso 0.1: Verificar el entorno
 
-En la raíz de tu fork ejecuta:
+En la raíz del repositorio ejecuta:
 
 ```bash
 npm run check:setup
@@ -239,7 +239,7 @@ Explica la estructura de este repo en cinco líneas.
 
 ### Paso 1.1: Preparar tres copias con el bug intacto
 
-Desde la raíz de tu fork, **antes de cambiar nada**:
+Desde la raíz del repositorio, **antes de cambiar nada**:
 
 ```bash
 git worktree add ../tasks-high  -b fusion-high
@@ -458,11 +458,11 @@ Copilot puede invocar al crítico solo, sin que se lo pidas. La sintaxis exacta 
 ### Objetivos
 
 - ✅ Trabajar con dos agentes locales a la vez, cada uno en su worktree
-- ✅ Delegar dos tareas a agentes en la nube
+- ✅ Delegar dos tareas a agentes en la nube (🌐 opcional)
 - ✅ Integrar el trabajo y resolver un conflicto
 - ✅ Medir si el paralelismo realmente ahorró tiempo
 
-> 💡 **La idea:** lanzarás cuatro tareas a la vez. Dos corren en tu máquina, donde puedes verlas y corregirlas. Dos corren en la nube y terminan en un PR en borrador.
+> 💡 **La idea:** lanzarás varias tareas a la vez. Dos corren en tu máquina, donde puedes verlas y corregirlas. Si tienes un repositorio propio en GitHub, puedes delegar dos más a la nube, que terminan en un PR en borrador.
 
 ### Paso 3.1: Crear dos worktrees
 
@@ -477,7 +477,7 @@ git worktree add ../tasks-limites -b feat/limites
 
 ### Paso 3.2: Lanzar los dos agentes locales
 
-Abre **dos terminales nuevas** y en cada una entra a la raíz de tu fork.
+Abre **dos terminales nuevas** y en cada una entra a la raíz del repositorio.
 
 **Terminal 1:**
 
@@ -507,9 +507,11 @@ Valida limit en GET /tasks: máximo 100 y error 400 si no es un entero positivo.
 
 Deja que ambos trabajen. Aprueba los permisos que pidan después de leerlos.
 
-### Paso 3.3: Delegar dos tareas a la nube
+### Paso 3.3: Delegar dos tareas a la nube (🌐 opcional)
 
-Los agentes en la nube trabajan sobre lo que está en GitHub, así que primero sube tu código:
+> 📝 Si trabajas solo en local, salta al [Paso 3.5](#paso-35-integrar-el-trabajo-local).
+
+Los agentes en la nube trabajan sobre lo que está en GitHub, así que primero sube tu código a tu repositorio propio:
 
 ```bash
 git push origin main
@@ -527,9 +529,9 @@ Abre otra sesión de `copilot` y delega la segunda con el atajo `&`:
 & documenta la API en el README
 ```
 
-✅ **Verificar:** cada delegación responde con un enlace a un PR en borrador en tu fork.
+✅ **Verificar:** cada delegación responde con un enlace a un PR en borrador en tu repositorio.
 
-### Paso 3.4: Seguir el trabajo en segundo plano
+### Paso 3.4: Seguir el trabajo en segundo plano (🌐 opcional)
 
 - Usa el panel **Tasks** para ver el avance de los agentes.
 - Usa `/resume` para moverte entre sesiones.
@@ -558,9 +560,9 @@ git merge feat/limites
 > git commit -m "Integra validaciones"
 > ```
 
-### Paso 3.6: Revisar los PRs de la nube
+### Paso 3.6: Revisar los PRs de la nube (🌐 opcional)
 
-Abre los dos PRs en borrador en tu fork. Revísalos **como si los hubiera escrito otra persona**: lee el diff completo, no solo la descripción.
+Abre los dos PRs en borrador en tu repositorio. Revísalos **como si los hubiera escrito otra persona**: lee el diff completo, no solo la descripción.
 
 ### Paso 3.7: Limpiar
 
@@ -615,7 +617,7 @@ git worktree remove ../tasks-autopilot
 ### ✅ Checkpoint del Ejercicio 3
 
 - [ ] Las dos validaciones están en `main` y `npm test` pasa.
-- [ ] Dos PRs en borrador creados por agentes en la nube y revisados.
+- [ ] (🌐 opcional) Dos PRs en borrador creados por agentes en la nube y revisados.
 - [ ] Worktrees eliminados.
 
 ### 🧯 Troubleshooting Ejercicio 3
@@ -623,7 +625,7 @@ git worktree remove ../tasks-autopilot
 | Problema | Solución |
 | --- | --- |
 | `fatal: 'feat/validacion' is already checked out` | Una rama no puede estar abierta en dos worktrees a la vez. Usa otro nombre de rama |
-| `/delegate` no crea el PR | Comprueba que hiciste `git push` y que tu fork tiene Actions habilitado |
+| `/delegate` no crea el PR | Comprueba que creaste tu repositorio propio, que hiciste `git push` y que tiene Actions habilitado |
 | No encuentro el panel Tasks | Depende de tu versión. Usa `/resume` para listar las sesiones |
 | El merge deja el código roto | Pide a Copilot: "Resuelve el conflicto conservando las dos validaciones y corre npm test" |
 
@@ -633,11 +635,11 @@ git worktree remove ../tasks-autopilot
 
 ### Objetivos
 
-- ✅ Dividir una funcionalidad en tres PRs pequeños que dependen uno del otro
-- ✅ Publicarlos juntos con `gh stack`
-- ✅ Mergear el stack completo
+- ✅ Dividir una funcionalidad en tres ramas pequeñas que dependen una de la otra
+- ✅ Ver el stack completo en local
+- ✅ Publicarlo como tres PRs con `gh stack` (🌐 opcional)
 
-> 💡 **La idea:** un PR grande es difícil de revisar. Un stack son varios PRs pequeños apilados: cada uno parte del anterior y se revisa por separado.
+> 💡 **La idea:** un cambio grande es difícil de revisar. Un stack son varias ramas pequeñas apiladas: cada una parte de la anterior y se revisa por separado. Al publicarlo, cada rama se convierte en un PR.
 
 ```text
 main
@@ -652,9 +654,11 @@ main
 
 ```bash
 git checkout main
-git pull
+git status
 gh stack --help
 ```
+
+✅ **Verificar:** estás en `main` y no hay cambios sin commit.
 
 ### Paso 4.2: Iniciar el stack
 
@@ -715,7 +719,17 @@ Agrega tests para el campo priority y el filtro ?priority=, y documenta ambos en
 git add -A && git commit -m "Tests y documentación de priority"
 ```
 
-### Paso 4.6: Publicar el stack
+### Paso 4.6: Ver el stack en local
+
+```bash
+git log --oneline --graph --all
+```
+
+✅ **Verificar:** ves las tres ramas en línea, cada una con un commit encima de la anterior.
+
+### Paso 4.7: Publicar el stack (🌐 opcional)
+
+Si tienes un repositorio propio en GitHub:
 
 ```bash
 gh stack push
@@ -723,18 +737,14 @@ gh stack submit
 gh stack view
 ```
 
-✅ **Verificar:** en tu fork hay tres PRs y cada uno apunta a la rama de la capa anterior.
+✅ **Verificar:** en tu repositorio hay tres PRs y cada uno apunta a la rama de la capa anterior.
 
-### Paso 4.7: Mergear el stack
-
-Cuando pasen los checks requeridos, mergea el stack completo desde la base (el PR de la capa 1).
-
-> ⚠ Agent Merge excluye los stacked PRs. La documentación de merge y la nota de disponibilidad no coinciden sobre el auto-merge, así que compruébalo en tu fork.
+> ⚠ Agent Merge excluye los stacked PRs. La documentación de merge y la nota de disponibilidad no coinciden sobre el auto-merge, así que compruébalo en tu repositorio.
 
 ### ✅ Checkpoint del Ejercicio 4
 
-- [ ] Tres PRs apilados visibles en tu fork.
-- [ ] Cada PR contiene solo su capa.
+- [ ] Tres ramas apiladas, cada una con solo su capa.
+- [ ] (🌐 opcional) Tres PRs apilados en tu repositorio.
 
 ### 🧯 Troubleshooting Ejercicio 4
 
@@ -742,7 +752,7 @@ Cuando pasen los checks requeridos, mergea el stack completo desde la base (el P
 | --- | --- |
 | `gh stack` no existe | `gh extension install github/gh-stack` y comprueba `gh --version` (2.90 o superior) |
 | `gh stack add` no acepta el nombre de rama | Revisa la sintaxis con `gh stack add --help` |
-| Un PR incluye cambios de otra capa | Hiciste commit en la rama equivocada. Revisa con `git log --oneline --graph` |
+| Una rama incluye cambios de otra capa | Hiciste commit en la rama equivocada. Revisa con `git log --oneline --graph --all` |
 
 ---
 
@@ -750,14 +760,21 @@ Cuando pasen los checks requeridos, mergea el stack completo desde la base (el P
 
 ### Objetivos
 
-- ✅ Pedir una revisión automática de Copilot
-- ✅ Aplicar una checklist humana antes de mergear
+- ✅ Pedir una revisión de código a Copilot
+- ✅ Aplicar una checklist humana antes de mezclar
+- ✅ Mezclar el stack en `main`
 
 ### Paso 5.1: Pedir la revisión de Copilot
 
-1. Abre uno de los PRs del Ejercicio 4 en GitHub.
-2. En **Reviewers**, selecciona **Copilot**.
-3. Espera los comentarios y léelos.
+En la carpeta original abre `copilot`.
+
+🤖 **PROMPT:**
+
+```text
+Actúa como revisor de código. Revisa el diff entre main y feat/prioridad-tests y lista los hallazgos ordenados por severidad: validaciones faltantes, códigos HTTP incorrectos y tests ausentes. No modifiques archivos.
+```
+
+> 🌐 **Opcional:** si publicaste el stack, abre uno de los PRs en GitHub y en **Reviewers** selecciona **Copilot**.
 
 ### Paso 5.2: Preguntar qué no se probó
 
@@ -771,7 +788,7 @@ Revisa los cambios de la rama feat/prioridad-filtro. ¿Qué casos no están cubi
 
 ### Paso 5.3: Aplicar la checklist humana
 
-Esta checklist también está en la [plantilla de PR](../.github/PULL_REQUEST_TEMPLATE.md). Márcala en el PR antes de mergear:
+Esta checklist también está en la [plantilla de PR](../.github/PULL_REQUEST_TEMPLATE.md). Repásala antes de mezclar:
 
 - [ ] Leí el diff completo, no solo el resumen del agente.
 - [ ] Corrí `npm test` en mi máquina.
@@ -779,13 +796,24 @@ Esta checklist también está en la [plantilla de PR](../.github/PULL_REQUEST_TE
 - [ ] Le pregunté al agente qué no probó.
 - [ ] Puedo explicar el cambio sin mirar el chat.
 
-### Paso 5.4: Mergear
+### Paso 5.4: Mezclar en `main`
 
-Si todo está marcado, mergea. Si no, pide los cambios que falten.
+Si todo está marcado, mezcla la última capa del stack. Incluye las tres:
+
+```bash
+git checkout main
+git merge feat/prioridad-tests
+npm test
+```
+
+Si falta algo, corrígelo en la capa que corresponda antes de mezclar.
+
+> 🌐 **Opcional:** si publicaste el stack, mergea desde GitHub empezando por la base (el PR de la capa 1).
 
 ### ✅ Checkpoint del Ejercicio 5
 
-- [ ] Al menos un PR revisado por Copilot y por ti, con la checklist completa.
+- [ ] Stack revisado por Copilot y por ti, con la checklist completa.
+- [ ] `priority` mezclado en `main` y `npm test` en verde.
 
 ---
 
@@ -808,7 +836,7 @@ Completa con lo que anotaste durante el laboratorio:
 | 1 | Modelo fijo | |
 | 2 | Plan + rubber duck | |
 | 3 | Dos agentes locales | |
-| 3 | Dos agentes en la nube | |
+| 3 | Dos agentes en la nube (🌐) | |
 | 3 | `/autopilot` y `/fleet` (bonus) | |
 
 ### Paso 6.2: Conversación final
@@ -828,14 +856,14 @@ No te preocupes: el valor está en experimentar con los agentes, no en terminar 
 | No terminé el Ejercicio 1 | Pide al instructor la corrección del filtro `?due=` y sigue con el Ejercicio 2 |
 | No terminé la paginación | Los Ejercicios 3 y 4 funcionan igual sin ella. Omite el prompt de `limit` del Paso 3.2 |
 | `/delegate` no funciona en mi cuenta | Haz solo la parte local del Ejercicio 3 |
-| Quedé en un estado confuso | `git status` y luego `git stash` o `git reset --hard origin/main`. **Perderás los cambios locales sin commit** |
+| Quedé en un estado confuso | `git status` y luego `git stash` o `git reset --hard upstream/main` para volver al punto de partida del taller. **Perderás todos tus cambios locales** |
 | Mi resultado es distinto al de mi vecino | Es normal: los agentes no son deterministas. Comparen resultados |
 
 ---
 
 ## ✅ Checklist final
 
-Al terminar deberías tener en tu fork:
+Al terminar deberías tener en tu copia local:
 
 ### Código
 
@@ -845,11 +873,11 @@ Al terminar deberías tener en tu fork:
 - [ ] Validación de `limit` en `GET /tasks`
 - [ ] Campo `priority` y filtro `?priority=`
 
-### Pull requests
+### Ramas y revisión
 
-- [ ] Dos PRs creados por agentes en la nube
-- [ ] Tres PRs apilados con `gh stack`
-- [ ] Al menos un PR con la checklist de revisión humana completa
+- [ ] Tres ramas apiladas con `gh stack`, mezcladas en `main`
+- [ ] Checklist de revisión humana aplicada antes de mezclar
+- [ ] (🌐 opcional) Dos PRs de agentes en la nube y tres PRs apilados en GitHub
 
 ### Aprendizaje
 
