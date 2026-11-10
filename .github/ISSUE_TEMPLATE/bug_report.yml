@@ -1,0 +1,21 @@
+name: Reporte de bug
+description: Algo no funciona como esperabas
+labels: []
+body:
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: Qué pasó
+      description: Describe lo que viste y lo que esperabas ver.
+    validations:
+      required: true
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Cómo reproducirlo
+      description: Pasos exactos, incluyendo la petición HTTP si aplica.
+      placeholder: |
+        1. curl -s "http://localhost:3000/tasks?due=..."
+        2. ...
+    validations:
+      required: true

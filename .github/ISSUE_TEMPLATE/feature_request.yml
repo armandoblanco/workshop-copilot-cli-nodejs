@@ -1,0 +1,15 @@
+name: Solicitud de mejora
+description: Propón una capacidad nueva para la API
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema que resuelve
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Propuesta
+    validations:
+      required: true

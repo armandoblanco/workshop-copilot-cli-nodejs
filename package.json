@@ -1,0 +1,23 @@
+{
+  "name": "contoso-tasks-api",
+  "version": "1.0.0",
+  "description": "API de tareas de Contoso Servicios. Repo base de los workshops de GitHub Copilot CLI con Node.js.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "check:setup": "node scripts/check-setup.mjs"
+  },
+  "dependencies": {
+    "lodash": "4.17.20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armandoblanco/workshop-copilot-cli-nodejs.git"
+  },
+  "license": "MIT"
+}

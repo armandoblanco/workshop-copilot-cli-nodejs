@@ -1,0 +1,16 @@
+node_modules/
+
+# Material del instructor: no se publica
+instructor/
+.env
+.env.*
+*.log
+.DS_Store
+coverage/
+
+# Salidas de gh aw trial y archivos temporales del compilador
+trials/
+.github/aw/
+
+# Carpetas de worktrees si las creas dentro del repo
+worktrees/
